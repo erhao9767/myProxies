@@ -30,19 +30,26 @@ class RedisProxyPool(BaseProxyPool):
 
     def _redis_db(self):
         self.conn = redis.Redis(host=setting.REDIS_HOST, port=setting.REDIS_PROT, password=setting.REDIS_PWD)
+
         self.proxies['http'] = [str(i, 'utf8') for i in self.conn.smembers('http')]
         self.proxies['https'] = [str(i, 'utf8') for i in self.conn.smembers('https')]
         self.shadow_proxies['http'] = [str(i, 'utf8') for i in self.conn.smembers('shadow_http')]
         self.shadow_proxies['https'] = [str(i, 'utf8') for i in self.conn.smembers('shadow_https')]
 
-    def add_proxy(self, protocol, iport):
-        self.conn.sadd(protocol, iport)
+    def _valid_proxy(self, protocol, shadow):
+        if protocol not in ['http', 'https']:
+            raise TypeError("代理传输协议只能是http或https")
+        if shadow:
+            protocol = 'shadow_' + protocol
+        return protocol
 
-    def add_shadow_proxy(self, protocol, iport):
-        if protocol == "http":
-            self.conn.sadd("shadow_http", iport)
-            return
-        self.conn.sadd("shadow_https", iport)
+    def add_proxy(self, protocol, host_port, shadow=None):
+        valid_key = self._valid_proxy(protocol, shadow)
+        self.conn.sadd(valid_key, host_port)
+
+    def remove_proxy(self, protocol, host_port, shadow=None):
+        valid_key = self._valid_proxy(protocol, shadow)
+        self.conn.srem(valid_key, host_port)
 
 
 proxies = RedisProxyPool()
