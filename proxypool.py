@@ -38,7 +38,7 @@ class RedisProxyPool(BaseProxyPool):
 
     def _valid_proxy(self, protocol, shadow):
         if protocol not in ['http', 'https']:
-            raise TypeError("代理传输协议只能是http或https")
+            raise RuntimeError("代理传输协议只能是http或https")
         if shadow:
             protocol = 'shadow_' + protocol
         return protocol
