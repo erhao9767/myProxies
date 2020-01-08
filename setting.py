@@ -1,0 +1,4 @@
+# redis
+REDIS_HOST = '129.28.161.191'
+REDIS_PROT = 6379
+REDIS_PWD = 'anqunlierhao9767.'
